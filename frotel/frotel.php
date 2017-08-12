@@ -146,8 +146,8 @@ class Frotel extends Module
 
 		if(!$this->uninstallFrotelDb()) return false;
 
-		require (_PS_MODULE_DIR_ . 'mymodpayment/mymodpayment.php');
-		$payment = new MyModPayment();
+		require (_PS_MODULE_DIR_ . 'frotelpayment/frotelpayment.php');
+		$payment = new FrotelPayment();
 
 		if (!parent::uninstall() || $payment->uninstall()) 	return false;
 
