@@ -107,8 +107,8 @@ class Frotel extends Module
       Configuration::updateValue('RahgiriOnTop', 0);
 	  Configuration::updateValue('RahgiriOnFooter', 0);   
 
-	require (_PS_MODULE_DIR_ . 'mymodpayment/mymodpayment.php');
-	$payment = new MyModPayment();
+	require (_PS_MODULE_DIR_ . 'frotelpayment/frotelpayment.php');
+	$payment = new FrotelPayment();
 	  if (!parent::install() ||
 	  	!$payment->install() ||
 	    !$this->registerHook('displayShoppingCartFooter')||
