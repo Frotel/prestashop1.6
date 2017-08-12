@@ -104,7 +104,9 @@ class Frotel extends Module
 	  Configuration::updateValue('PAYMENT_FROTEL_ONLINE', '');
 	  Configuration::updateValue('SEFARESHI_FROTEL', '');
 	  Configuration::updateValue('PISHTAZ_FROTEL', '');
-        
+      Configuration::updateValue('RahgiriOnTop', 0);
+	  Configuration::updateValue('RahgiriOnFooter', 0);   
+
 	require (_PS_MODULE_DIR_ . 'mymodpayment/mymodpayment.php');
 	$payment = new MyModPayment();
 	  if (!parent::install() ||
@@ -113,7 +115,8 @@ class Frotel extends Module
 		!$this->registerHook('displayBeforeCarrier') ||
 		!$this->registerHook('adminOrder') ||
 		!$this->registerHook('displayTop') ||
-		!$this->registerHook('displayHeader')
+		!$this->registerHook('displayHeader') ||
+		!$this->registerHook('displayFooter')
 	  ) {
 	    return false;
 	  }
@@ -141,7 +144,7 @@ class Frotel extends Module
 		Configuration::deleteByName('ID_SEFARESHI_ONLINE');
 		Configuration::deleteByName('ID_PISHTAZ_ONLINE');
 
-		//if(!$this->uninstallFrotelDb()) return false;
+		if(!$this->uninstallFrotelDb()) return false;
 
 		require (_PS_MODULE_DIR_ . 'mymodpayment/mymodpayment.php');
 		$payment = new MyModPayment();
@@ -171,7 +174,7 @@ class Frotel extends Module
 	public function installFrotelDb()
     {
         $sql = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'frotelfactors`(  
-            `id_factor` INT(10) NOT NULL ,
+            `id_factor` INT(10) NOT NULL AUTO_INCREMENT,
             `id_cart` INT(10) NOT NULL,
             `factor` VARCHAR(30),
 			`id_city` INT(10) NOT NULL,
@@ -189,7 +192,7 @@ class Frotel extends Module
 
 	public function uninstallFrotelDb()
 	{
-		$sql = 'DROP TABLE'._DB_PREFIX_.'frotelfactors';
+		$sql = 'DROP TABLE '._DB_PREFIX_.'frotelfactors';
 		if (!Db::getInstance()->execute($sql))
             return false;
 
@@ -209,7 +212,9 @@ class Frotel extends Module
 			$OnlinePayment = Tools::getValue('paymentonline');
 			$SefareshiFrotel = Tools::getValue('sefareshifrotel');
 			$PishtazFrotel = Tools::getValue('pishtazfrotel');
-		
+			$RahgiriOnTop = Tools::getValue('RahgiriOnTop');
+			$RahgiriOnFooter = Tools::getValue('RahgiriOnFooter');
+
 			Configuration::updateValue('API', $api);
 			Configuration::updateValue('WSF', $address);
 			Configuration::updateValue('WEIGHTUNIT', $weightunit);
@@ -217,6 +222,8 @@ class Frotel extends Module
 			Configuration::updateValue('PAYMENT_FROTEL_ONLINE', $OnlinePayment);
 			Configuration::updateValue('SEFARESHI_FROTEL', $SefareshiFrotel);
 			Configuration::updateValue('PISHTAZ_FROTEL', $PishtazFrotel);
+			Configuration::updateValue('RahgiriOnTop', $RahgiriOnTop);
+			Configuration::updateValue('RahgiriOnFooter', $RahgiriOnFooter);
 
 			if($CodPayment){
 
@@ -263,31 +270,6 @@ class Frotel extends Module
 				SET active = 0 WHERE id_carrier IN ('.
 				Configuration::get("ID_PISHTAZ_ONLINE").','.Configuration::get("ID_SEFARESHI_ONLINE").')');
 			}
-
-			/*if (!$PishtazFrotel) {	
-				Db::getInstance()->execute('
-				UPDATE '._DB_PREFIX_.'carrier 
-				SET active = 0 WHERE id_carrier IN ('.
-				Configuration::get("ID_PISHTAZ_ONLINE").','.Configuration::get("ID_PISHTAZ_COD").')');
-			}else{
-				Db::getInstance()->execute('
-				UPDATE '._DB_PREFIX_.'carrier 
-				SET active = 1 WHERE id_carrier IN ('.
-				Configuration::get("ID_PISHTAZ_ONLINE").','.Configuration::get("ID_PISHTAZ_ONLINE").')');
-			}
-
-			if (!$SefareshiFrotel) {	
-				Db::getInstance()->execute('
-				UPDATE '._DB_PREFIX_.'carrier 
-				SET active = 0 WHERE id_carrier IN ('.
-				Configuration::get("ID_SEFARESHI_ONLINE").','.Configuration::get("ID_SEFARESHI_COD").')');
-			}else{
-				Db::getInstance()->execute('
-				UPDATE '._DB_PREFIX_.'carrier 
-				SET active = 1 WHERE id_carrier IN ('.
-				Configuration::get("ID_SEFARESHI_ONLINE").','.Configuration::get("ID_SEFARESHI_COD").')');
-			}*/
-
 			
 			$output .= $this->displayConfirmation($this->l('تنظیمات شما ذخیره شد.'));
         }
@@ -398,6 +380,25 @@ class Frotel extends Module
 							array(
 								'id' => 'active_on',
 								'value' => 1,
+								'label' => $this->l('فعال'),
+							),
+							array(
+								'id' => 'active_off',
+								'value' => 0,
+								'label' => $this->l('غیر فعال'),
+							)
+						),
+					),
+					array(
+						'type' => 'switch',
+						'label' => $this->l('نمایش لینک رهگیری خرید در بالای صفحه'),
+						'name' => 'RahgiriOnTop',
+						'is_bool' => true,
+						'desc' => $this->l('در صورتی که می خواهید دکمه رهگیری خرید در بالای صفحه قالب شما قرار گیرد این آیتم را فعال کنید'),
+						'values' => array(
+							array(
+								'id' => 'active_on',
+								'value' => 1,
 								'label' => $this->l('فعال')
 							),
 							array(
@@ -406,14 +407,45 @@ class Frotel extends Module
 								'label' => $this->l('غیر فعال')
 							)
 						),
-					)
+					),
+					array(
+						'type' => 'switch',
+						'label' => $this->l('نمایش لینک رهگیری خرید در فوتر صفحه'),
+						'name' => 'RahgiriOnFooter',
+						'is_bool' => true,
+						'desc' => $this->l('در صورتی که می خواهید دکمه رهگیری خرید در فوتر صفحه قالب شما قرار گیرد این آیتم را فعال کنید'),
+						'values' => array(
+							array(
+								'id' => 'active_on',
+								'value' => 1,
+								'label' => $this->l('فعال')
+							),
+							array(
+								'id' => 'active_off',
+								'value' => 0,
+								'label' => $this->l('غیر فعال')
+							)
+						),
+					),
+					array(
+						'type' => 'text',
+						'label' => $this->l('آدرس صفحه رهگیری'),
+						'name' => 'LinkRahgiriPage',
+						'size' => 2,
+						'readonly' => 'readonly' ,
+						'desc' => $this->l('این آدرس صفحه رهگیری  می باشد در صورتی که می خواهید شما میتوانید آن را در قالب خود به صورت اختصاصی  قرار دهید '),
+					),
                 ),
 	            'submit' => array(
 	                'title' => $this->l('Save'),
 	                'class' => 'button'
 	            )
 	        );
+
 	        $helper = new HelperForm();
+			$helper->fields_value = array(
+				'LinkRahgiriPage' => $this->context->link->getModuleLink('frotel', 'rahgiri'),
+			);
 	        // Module, token and currentIndex
 	        $helper->module = $this;
 	        $helper->name_controller = $this->name;
@@ -448,6 +480,8 @@ class Frotel extends Module
 			$helper->fields_value['paymentonline'] = Configuration::get('PAYMENT_FROTEL_ONLINE');
 			$helper->fields_value['sefareshifrotel'] = Configuration::get('SEFARESHI_FROTEL');
 			$helper->fields_value['pishtazfrotel'] = Configuration::get('PISHTAZ_FROTEL');
+			$helper->fields_value['RahgiriOnTop'] = Configuration::get('RahgiriOnTop');
+			$helper->fields_value['RahgiriOnFooter'] = Configuration::get('RahgiriOnFooter');
 
 	        return $helper->generateForm($fields_form);
     }
@@ -797,12 +831,19 @@ class Frotel extends Module
 
 	public function hookdisplayTop()
 	{
-		return $this->display(__file__ ,'views/templates/hook/rahgiri.tpl');
+		if(Configuration::get('RahgiriOnTop')==1)
+			return $this->display(__file__ ,'views/templates/hook/rahgiri.tpl');
 	}
 
 	public function hookdisplayHeader()
 	{
 		
+	}
+
+	public function hookdisplayFooter()
+	{
+		if (Configuration::updateValue('RahgiriOnFooter', $RahgiriOnFooter) == 1)
+				return $this->display(__file__ ,'views/templates/hook/rahgiri.tpl');
 	}
 
 }

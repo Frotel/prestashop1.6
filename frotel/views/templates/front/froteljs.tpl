@@ -20,7 +20,7 @@ $(document).ready(function(){
                 {
                     $(".message_frotel").html("استان و شهر شما انتخاب شد .")
                 }else{
-                    $(".message_frotel").html(data)
+                    $(".message_frotel").html("خطا در اتصال به سرور")
                 }
                 
             }
